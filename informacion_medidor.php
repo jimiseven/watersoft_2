@@ -28,6 +28,7 @@ $info = $resultado_info->fetch_assoc();
 // Consulta para obtener el historial de consumo
 $sql_historial = "
     SELECT 
+        consumo.id_consumo,
         consumo.periodo AS mes,
         DATE_FORMAT(consumo.lectura_anterior, '%d %M') AS fecha_lectura,
         DATE_FORMAT(deudas.fecha_pago, '%d %M') AS fecha_pago,
@@ -43,7 +44,6 @@ $stmt_historial = $conexion->prepare($sql_historial);
 $stmt_historial->bind_param('i', $id_asignacion);
 $stmt_historial->execute();
 $resultado_historial = $stmt_historial->get_result();
-
 ?>
 
 <!DOCTYPE html>
@@ -54,6 +54,8 @@ $resultado_historial = $stmt_historial->get_result();
     <title>Información del Medidor</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="d-flex">
@@ -108,7 +110,17 @@ $resultado_historial = $stmt_historial->get_result();
                                     <td><?= htmlspecialchars($fila['fecha_pago'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($fila['consumo_total']) ?> M³</td>
                                     <td>Bs <?= htmlspecialchars($fila['monto'] ?? '0.00') ?></td>
-                                    <td><?= htmlspecialchars($fila['estado']) ?></td>
+                                    <td>
+                                        <?php if ($fila['estado'] === 'Por pagar'): ?>
+                                            <button 
+                                                class="btn btn-success registrar-pago-btn" 
+                                                data-id="<?= htmlspecialchars($fila['id_consumo']) ?>">
+                                                Registrar Pago
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="text-muted"><?= htmlspecialchars($fila['estado']) ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
@@ -124,5 +136,40 @@ $resultado_historial = $stmt_historial->get_result();
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Modal para registrar pago -->
+    <div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPagoLabel">Registrar Pago</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de registrar este pago?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a id="confirmarPago" href="#" class="btn btn-primary" target="_blank">Confirmar y Generar PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Mostrar modal y establecer enlace para confirmar el pago
+            $('.registrar-pago-btn').on('click', function () {
+                const consumoId = $(this).data('id');
+                $('#confirmarPago').attr('href', `registrar_pago.php?id=${consumoId}`);
+                $('#modalPago').modal('show');
+            });
+
+            // Actualizar la tabla al cerrar el modal
+            $('#modalPago').on('hidden.bs.modal', function () {
+                location.reload();
+            });
+        });
+    </script>
 </body>
 </html>

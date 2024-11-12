@@ -69,7 +69,7 @@ $resultado = $stmt->get_result();
                     <a class="nav-link text-white active" href="lecturador.php">Lecturador</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="#">Pagos</a>
+                    <a class="nav-link text-white" href="pagos.php">Pagos</a>
                 </li>
             </ul>
         </div>
