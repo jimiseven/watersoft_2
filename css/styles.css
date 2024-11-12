@@ -1,0 +1,27 @@
+<style>
+body {
+    background-color: #f0f8ff; /* Celeste claro */
+}
+.sidebar {
+    background-color: #e3f2fd; /* Fondo celeste claro para el menú lateral */
+    min-height: 100vh;
+}
+.sidebar a {
+    color: #007bff; /* Azul para resaltar */
+    font-weight: bold;
+    text-decoration: none;
+}
+.sidebar a:hover {
+    color: #0056b3; /* Azul oscuro en hover */
+}
+.table th {
+    background-color: #007bff; /* Azul para los encabezados */
+    color: white;
+}
+.btn-primary {
+    background-color: #007bff; /* Azul para botón */
+}
+.btn-primary:hover {
+    background-color: #0056b3; /* Azul oscuro en hover */
+}
+</style>
