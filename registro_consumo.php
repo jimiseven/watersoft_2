@@ -30,7 +30,6 @@ $stmt_medidor->execute();
 $resultado_medidor = $stmt_medidor->get_result();
 $medidor = $resultado_medidor->fetch_assoc();
 
-// Validar que el medidor exista
 if (!$medidor) {
     echo '<div class="alert alert-danger">Información del medidor no encontrada.</div>';
     echo '<a href="lecturador.php" class="btn btn-primary">Volver</a>';
@@ -45,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : '';
     $periodo = isset($_POST['periodo']) ? $_POST['periodo'] : '';
 
-    // Validar los datos del formulario
     if ($lectura_actual !== null && $lectura_actual >= $lectura_anterior) {
         $consumo = $lectura_actual - $lectura_anterior;
 
@@ -58,8 +56,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_insert->bind_param('iddsds', $id_asignacion, $lectura_anterior, $lectura_actual, $periodo, $consumo, $observaciones);
 
         if ($stmt_insert->execute()) {
-            header("Location: lecturador.php?success=1");
-            exit;
+            // Obtener el ID del consumo recién insertado
+            $id_consumo = $stmt_insert->insert_id;
+
+            // Calcular el monto a pagar según la tabla de tarifas
+            $sql_tarifa = "
+                SELECT costo_unitario
+                FROM tarifas
+                WHERE ? BETWEEN rango_inicio AND rango_fin
+            ";
+            $stmt_tarifa = $conexion->prepare($sql_tarifa);
+            $stmt_tarifa->bind_param('d', $consumo);
+            $stmt_tarifa->execute();
+            $resultado_tarifa = $stmt_tarifa->get_result();
+            $tarifa = $resultado_tarifa->fetch_assoc();
+
+            if ($tarifa) {
+                $monto = $consumo * $tarifa['costo_unitario'];
+
+                // Insertar la deuda correspondiente al consumo
+                $sql_deuda = "
+                    INSERT INTO deudas (id_consumo, monto)
+                    VALUES (?, ?)
+                ";
+                $stmt_deuda = $conexion->prepare($sql_deuda);
+                $stmt_deuda->bind_param('id', $id_consumo, $monto);
+
+                if ($stmt_deuda->execute()) {
+                    header("Location: lecturador.php?success=1");
+                    exit;
+                } else {
+                    $mensaje = 'Error al registrar la deuda: ' . $stmt_deuda->error;
+                }
+            } else {
+                $mensaje = 'No se encontró una tarifa para el consumo registrado.';
+            }
         } else {
             $mensaje = 'Error al registrar el consumo: ' . $stmt_insert->error;
         }
@@ -68,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">

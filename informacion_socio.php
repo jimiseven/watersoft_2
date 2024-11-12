@@ -57,7 +57,7 @@ $mensaje = isset($_GET['success']) && $_GET['success'] == 1 ? 'Los datos del soc
                     <a class="nav-link text-white" href="socios.php">Socios</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="#">Lecturador</a>
+                    <a class="nav-link text-white" href="lecturador.php">Lecturador</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="#">Pagos</a>
