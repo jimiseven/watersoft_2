@@ -54,7 +54,7 @@ $mensaje = isset($_GET['success']) && $_GET['success'] == 1 ? 'Los datos del soc
                     <a class="nav-link text-white" href="index.php">Medidores</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="socios.php">Socios</a>
+                    <a class="nav-link text-white active" href="socios.php">Socios</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="lecturador.php">Lecturador</a>
@@ -78,9 +78,14 @@ $mensaje = isset($_GET['success']) && $_GET['success'] == 1 ? 'Los datos del soc
                     <p><strong>CI:</strong> <?= htmlspecialchars($socio['ci']) ?></p>
                     <p><strong>Celular:</strong> <?= htmlspecialchars($socio['telefono']) ?></p>
                 </div>
-                <div class="mb-4 d-flex justify-content-end">
-                    <a href="asignar_medidor.php?id=<?= $socio['id_socio'] ?>" class="btn btn-success me-2">Asignar Medidor</a>
-                    <a href="editar_socio.php?id=<?= $socio['id_socio'] ?>" class="btn btn-primary">Editar Socio</a>
+                <div class="mb-4 d-flex justify-content-between">
+                    <div>
+                        <a href="socios.php" class="btn btn-secondary">Atrás</a>
+                    </div>
+                    <div>
+                        <a href="asignar_medidor.php?id=<?= $socio['id_socio'] ?>" class="btn btn-success me-2">Asignar Medidor</a>
+                        <a href="editar_socio.php?id=<?= $socio['id_socio'] ?>" class="btn btn-primary">Editar Socio</a>
+                    </div>
                 </div>
                 <h2 class="mb-3">Medidores Asignados</h2>
                 <table class="table table-striped">

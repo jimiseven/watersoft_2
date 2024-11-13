@@ -76,7 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="fecha" class="form-label">Fecha de registro</label>
                     <input type="date" class="form-control" id="fecha" name="fecha" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Registrar</button>
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                    <a href="index.php" class="btn btn-secondary">Atrás</a>
+                </div>
             </form>
         </div>
     </div>
