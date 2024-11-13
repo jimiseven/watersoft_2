@@ -9,6 +9,26 @@ if ($id_asignacion <= 0) {
     die("ID de asignación inválido.");
 }
 
+// Comprobar si ya existe un registro de consumo para el mes actual
+$mes_actual = date('F');
+$sql_verificar = "
+    SELECT id_consumo
+    FROM consumo
+    WHERE id_asignacion = ? AND periodo = ?
+    LIMIT 1
+";
+$stmt_verificar = $conexion->prepare($sql_verificar);
+$stmt_verificar->bind_param('is', $id_asignacion, $mes_actual);
+$stmt_verificar->execute();
+$resultado_verificar = $stmt_verificar->get_result();
+
+if ($resultado_verificar->num_rows > 0) {
+    $mensaje_modal = "El consumo de este mes ya ha sido registrado.";
+    $mostrar_modal = true;
+} else {
+    $mostrar_modal = false;
+}
+
 // Consulta para cargar la información del medidor
 $sql_medidor = "
     SELECT 
@@ -38,7 +58,7 @@ if (!$medidor) {
 
 // Procesar el formulario si se envió
 $mensaje = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$mostrar_modal) {
     $lectura_actual = isset($_POST['lectura_actual']) ? (float)$_POST['lectura_actual'] : null;
     $lectura_anterior = isset($_POST['lectura_anterior']) ? (float)$_POST['lectura_anterior'] : null;
     $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : '';
@@ -56,41 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_insert->bind_param('iddsds', $id_asignacion, $lectura_anterior, $lectura_actual, $periodo, $consumo, $observaciones);
 
         if ($stmt_insert->execute()) {
-            // Obtener el ID del consumo recién insertado
-            $id_consumo = $stmt_insert->insert_id;
-
-            // Calcular el monto a pagar según la tabla de tarifas
-            $sql_tarifa = "
-                SELECT costo_unitario
-                FROM tarifas
-                WHERE ? BETWEEN rango_inicio AND rango_fin
-            ";
-            $stmt_tarifa = $conexion->prepare($sql_tarifa);
-            $stmt_tarifa->bind_param('d', $consumo);
-            $stmt_tarifa->execute();
-            $resultado_tarifa = $stmt_tarifa->get_result();
-            $tarifa = $resultado_tarifa->fetch_assoc();
-
-            if ($tarifa) {
-                $monto = $consumo * $tarifa['costo_unitario'];
-
-                // Insertar la deuda correspondiente al consumo
-                $sql_deuda = "
-                    INSERT INTO deudas (id_consumo, monto)
-                    VALUES (?, ?)
-                ";
-                $stmt_deuda = $conexion->prepare($sql_deuda);
-                $stmt_deuda->bind_param('id', $id_consumo, $monto);
-
-                if ($stmt_deuda->execute()) {
-                    header("Location: lecturador.php?success=1");
-                    exit;
-                } else {
-                    $mensaje = 'Error al registrar la deuda: ' . $stmt_deuda->error;
-                }
-            } else {
-                $mensaje = 'No se encontró una tarifa para el consumo registrado.';
-            }
+            header("Location: lecturador.php?success=1");
+            exit;
         } else {
             $mensaje = 'Error al registrar el consumo: ' . $stmt_insert->error;
         }
@@ -99,7 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="es">
@@ -129,35 +115,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <form method="POST" action="">
-            <div class="mb-3">
-                <label for="fecha_actual" class="form-label">Fecha Actual:</label>
-                <input type="text" id="fecha_actual" class="form-control" value="<?= date('Y-m-d') ?>" disabled>
+        <?php if ($mostrar_modal): ?>
+            <!-- Modal -->
+            <div class="modal show" tabindex="-1" style="display: block; background: rgba(0, 0, 0, 0.5);">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Atención</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p><?= htmlspecialchars($mensaje_modal) ?></p>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="lecturador.php" class="btn btn-secondary">Volver</a>
+                        </div>
+                    </div>
+                </div>
             </div>
+        <?php else: ?>
+            <form method="POST" action="">
+                <div class="mb-3">
+                    <label for="fecha_actual" class="form-label">Fecha Actual:</label>
+                    <input type="text" id="fecha_actual" class="form-control" value="<?= date('Y-m-d') ?>" disabled>
+                </div>
 
-            <div class="mb-3">
-                <label for="periodo" class="form-label">Mes:</label>
-                <input type="text" id="periodo" name="periodo" class="form-control" value="<?= date('F') ?>" readonly>
-            </div>
+                <div class="mb-3">
+                    <label for="periodo" class="form-label">Mes:</label>
+                    <input type="text" id="periodo" name="periodo" class="form-control" value="<?= date('F') ?>" readonly>
+                </div>
 
-            <div class="mb-3">
-                <label for="lectura_anterior" class="form-label">Lectura Anterior:</label>
-                <input type="text" id="lectura_anterior" name="lectura_anterior" class="form-control" value="<?= htmlspecialchars($medidor['lectura_anterior']) ?>" readonly>
-            </div>
+                <div class="mb-3">
+                    <label for="lectura_anterior" class="form-label">Lectura Anterior:</label>
+                    <input type="text" id="lectura_anterior" name="lectura_anterior" class="form-control" value="<?= htmlspecialchars($medidor['lectura_anterior']) ?>" readonly>
+                </div>
 
-            <div class="mb-3">
-                <label for="lectura_actual" class="form-label">Lectura Actual:</label>
-                <input type="number" id="lectura_actual" name="lectura_actual" class="form-control" required>
-            </div>
+                <div class="mb-3">
+                    <label for="lectura_actual" class="form-label">Lectura Actual:</label>
+                    <input type="number" id="lectura_actual" name="lectura_actual" class="form-control" required>
+                </div>
 
-            <div class="mb-3">
-                <label for="observaciones" class="form-label">Observaciones:</label>
-                <textarea id="observaciones" name="observaciones" class="form-control"></textarea>
-            </div>
+                <div class="mb-3">
+                    <label for="observaciones" class="form-label">Observaciones:</label>
+                    <textarea id="observaciones" name="observaciones" class="form-control"></textarea>
+                </div>
 
-            <button type="submit" class="btn btn-success">Registrar</button>
-            <a href="lecturador.php" class="btn btn-secondary">Cancelar</a>
-        </form>
+                <button type="submit" class="btn btn-success">Registrar</button>
+                <a href="lecturador.php" class="btn btn-secondary">Cancelar</a>
+            </form>
+        <?php endif; ?>
     </div>
 </body>
 </html>
