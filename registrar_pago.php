@@ -53,15 +53,76 @@ if ($stmt_pago->execute()) {
     // Generar PDF de recibo
     $dompdf = new Dompdf();
     $html = "
-        <h2 style='text-align: center;'>Cooperativa de agua Iquircollo SUD</h2>
-        <p><strong>Socio:</strong> {$info['nombre_socio']} {$info['apellido_socio']}</p>
-        <p><strong>CI:</strong> {$info['ci']}</p>
-        <p><strong>Medidor:</strong> {$info['medidor']}</p>
-        <p><strong>Zona:</strong> {$info['zona']}</p>
-        <p><strong>Mes:</strong> {$info['mes']}</p>
-        <p><strong>Consumo:</strong> {$info['consumo_total']} m³</p>
-        <p><strong>Total:</strong> Bs {$info['monto_total']}</p>
-        <p><strong>Fecha de pago:</strong> " . date('d-m-Y') . "</p>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                color: #333;
+                line-height: 1.6;
+            }
+            .header {
+                text-align: center;
+                background-color: #004085;
+                color: #fff;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+            .header h2 {
+                margin: 0;
+            }
+            .content {
+                padding: 20px;
+            }
+            .section {
+                margin-bottom: 20px;
+            }
+            .section p {
+                margin: 5px 0;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 12px;
+                color: #555;
+            }
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            .table th {
+                background-color: #f4f4f4;
+                font-weight: bold;
+            }
+        </style>
+        <div class='header'>
+            <h2>Cooperativa de Agua Iquircollo SUD</h2>
+            <p>Recibo de Pago</p>
+        </div>
+        <div class='content'>
+            <div class='section'>
+                <h3>Información del Socio</h3>
+                <p><strong>Nombre:</strong> {$info['nombre_socio']} {$info['apellido_socio']}</p>
+                <p><strong>CI:</strong> {$info['ci']}</p>
+                <p><strong>Zona:</strong> {$info['zona']}</p>
+            </div>
+            <div class='section'>
+                <h3>Información del Consumo</h3>
+                <p><strong>Medidor:</strong> {$info['medidor']}</p>
+                <p><strong>Mes:</strong> {$info['mes']}</p>
+                <p><strong>Consumo:</strong> {$info['consumo_total']} m³</p>
+                <p><strong>Total a Pagar:</strong> Bs {$info['monto_total']}</p>
+                <p><strong>Fecha de Pago:</strong> " . date('d-m-Y') . "</p>
+            </div>
+            <div class='footer'>
+                <p>Gracias por confiar en nosotros.</p>
+                <p>&copy; Cooperativa de Agua Iquircollo SUD</p>
+            </div>
+        </div>
     ";
 
     $dompdf->loadHtml($html);

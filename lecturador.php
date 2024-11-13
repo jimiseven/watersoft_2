@@ -20,8 +20,9 @@ if ($result_contadores) {
     $sin_lectura = $data_contadores['sin_lectura'] ?? 0;
 }
 
-// Obtener el término de búsqueda si existe
+// Obtener el término de búsqueda y filtro si existen
 $busqueda = isset($_GET['buscar']) ? $_GET['buscar'] : '';
+$filtro = isset($_GET['filtro']) ? $_GET['filtro'] : 'todos';
 
 // Consulta para obtener los medidores y su estado de lectura
 $sql = "
@@ -37,14 +38,23 @@ $sql = "
     INNER JOIN zona ON asignacion_medidor.id_zona = zona.id_zona
 ";
 
+// Aplicar filtro según la selección
+if ($filtro === 'lecturados') {
+    $sql .= " WHERE EXISTS (SELECT 1 FROM consumo WHERE consumo.id_asignacion = asignacion_medidor.id_asignacion)";
+} elseif ($filtro === 'sin_lectura') {
+    $sql .= " WHERE NOT EXISTS (SELECT 1 FROM consumo WHERE consumo.id_asignacion = asignacion_medidor.id_asignacion)";
+}
+
+// Aplicar búsqueda si existe
 if (!empty($busqueda)) {
-    $sql .= " WHERE CONCAT('MED', LPAD(medidor.id_medidor, 4, '0')) LIKE ? OR socio.nombre LIKE ? OR socio.apellido LIKE ?";
+    $sql .= (strpos($sql, 'WHERE') !== false ? ' AND' : ' WHERE') . " (CONCAT('MED', LPAD(medidor.id_medidor, 4, '0')) LIKE ? OR socio.nombre LIKE ? OR socio.apellido LIKE ?)";
     $stmt = $conexion->prepare($sql);
     $like_busqueda = '%' . $busqueda . '%';
     $stmt->bind_param('sss', $like_busqueda, $like_busqueda, $like_busqueda);
 } else {
     $stmt = $conexion->prepare($sql);
 }
+
 $stmt->execute();
 $resultado = $stmt->get_result();
 ?>
@@ -87,8 +97,7 @@ $resultado = $stmt->get_result();
 
         <!-- Contenido Principal -->
         <div class="content flex-grow-1 p-4">
-            <h1 class="mb-4">Lecturación</h1>
-
+            <h1 class="mb-4 text-center">Lecturación</h1>
 
             <!-- Contadores -->
             <div class="d-flex flex-column flex-md-row justify-content-around mb-4">
@@ -102,13 +111,16 @@ $resultado = $stmt->get_result();
                 </div>
             </div>
 
-            <!-- Formulario de búsqueda -->
+            <!-- Formulario de búsqueda y filtros -->
             <form method="GET" action="lecturador.php" class="mb-4">
                 <div class="input-group">
                     <input type="text" class="form-control" name="buscar" placeholder="Buscar por medidor o socio" value="<?= htmlspecialchars($busqueda) ?>">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Buscar
-                    </button>
+                    <select class="form-select" name="filtro">
+                        <option value="todos" <?= $filtro === 'todos' ? 'selected' : '' ?>>Todos</option>
+                        <option value="lecturados" <?= $filtro === 'lecturados' ? 'selected' : '' ?>>Lecturados</option>
+                        <option value="sin_lectura" <?= $filtro === 'sin_lectura' ? 'selected' : '' ?>>Sin Lectura</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
                 </div>
             </form>
 
