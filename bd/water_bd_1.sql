@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-11-2024 a las 23:49:09
+-- Tiempo de generación: 13-11-2024 a las 17:38:42
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.1.25
 
@@ -52,7 +52,9 @@ INSERT INTO `asignacion_medidor` (`id_asignacion`, `id_medidor`, `id_socio`, `id
 (9, 9, 5, 1, '2024-11-12', 50.00),
 (10, 10, 5, 2, '2024-11-12', 1500.00),
 (11, 11, 6, 1, '2024-11-12', 1200.00),
-(12, 12, 7, 1, '2024-11-12', 500.00);
+(12, 12, 7, 1, '2024-11-12', 500.00),
+(13, 13, 7, 1, '2024-11-13', 600.00),
+(14, 14, 7, 1, '2024-11-13', 700.00);
 
 -- --------------------------------------------------------
 
@@ -87,7 +89,9 @@ INSERT INTO `consumo` (`id_consumo`, `id_asignacion`, `lectura_anterior`, `lectu
 (14, 9, 0.00, 12.00, 'November', 12.00, ''),
 (16, 10, 0.00, 50.00, 'November', 50.00, ''),
 (19, 11, 25.00, 30.00, 'November', 5.00, ''),
-(20, 12, 0.00, 5.00, 'November', 5.00, 'nuevo socio');
+(20, 12, 0.00, 5.00, 'November', 5.00, 'nuevo socio'),
+(21, 13, 0.00, 110.00, 'November', 110.00, ''),
+(22, 14, 0.00, 300.00, 'November', 300.00, '');
 
 -- --------------------------------------------------------
 
@@ -117,7 +121,9 @@ INSERT INTO `deudas` (`id_deuda`, `id_consumo`, `monto`, `fecha_pago`) VALUES
 (8, 14, 18.00, '2024-11-12'),
 (9, 16, 75.00, '2024-11-12'),
 (10, 19, 7.50, '2024-11-12'),
-(11, 20, 7.50, '2024-11-12');
+(11, 20, 7.50, '2024-11-12'),
+(12, 21, 495.00, '2024-11-13'),
+(13, 22, 1800.00, '2024-11-13');
 
 -- --------------------------------------------------------
 
@@ -148,7 +154,9 @@ INSERT INTO `medidor` (`id_medidor`, `marca`, `modelo`, `fecha`) VALUES
 (9, 'electro', '12345', '2024-11-12'),
 (10, 'mars', 'mons', '2024-11-06'),
 (11, 'perini', 'perini1', '2024-11-06'),
-(12, 'samsum', '2022', '2024-02-02');
+(12, 'samsum', '2022', '2024-02-02'),
+(13, 'lg', 'mars', '2024-11-07'),
+(14, 'Restman', 'asf3', '2024-11-14');
 
 -- --------------------------------------------------------
 
@@ -196,8 +204,10 @@ CREATE TABLE `tarifas` (
 --
 
 INSERT INTO `tarifas` (`id_tarifa`, `rango_inicio`, `rango_fin`, `costo_unitario`) VALUES
-(1, 0.00, 50.00, 1.50),
-(2, 51.00, 100.00, 1.20);
+(1, 0.00, 50.00, 2.00),
+(2, 51.00, 100.00, 3.00),
+(3, 101.00, 250.00, 4.50),
+(4, 251.00, 1000.00, 6.00);
 
 -- --------------------------------------------------------
 
@@ -304,25 +314,25 @@ ALTER TABLE `zona`
 -- AUTO_INCREMENT de la tabla `asignacion_medidor`
 --
 ALTER TABLE `asignacion_medidor`
-  MODIFY `id_asignacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_asignacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `consumo`
 --
 ALTER TABLE `consumo`
-  MODIFY `id_consumo` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id_consumo` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT de la tabla `deudas`
 --
 ALTER TABLE `deudas`
-  MODIFY `id_deuda` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_deuda` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `medidor`
 --
 ALTER TABLE `medidor`
-  MODIFY `id_medidor` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_medidor` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `socio`
@@ -334,7 +344,7 @@ ALTER TABLE `socio`
 -- AUTO_INCREMENT de la tabla `tarifas`
 --
 ALTER TABLE `tarifas`
-  MODIFY `id_tarifa` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_tarifa` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_sis`
