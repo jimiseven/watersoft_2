@@ -1,13 +1,32 @@
 <?php
 include 'conexion.php';
 
+// Inicializar variables para contadores
+$lecturados = 0;
+$sin_lectura = 0;
+
+// Consultar el número de medidores lecturados y sin lectura
+$sql_contadores = "
+    SELECT 
+        SUM(CASE WHEN consumo.id_consumo IS NOT NULL THEN 1 ELSE 0 END) AS lecturados,
+        SUM(CASE WHEN consumo.id_consumo IS NULL THEN 1 ELSE 0 END) AS sin_lectura
+    FROM asignacion_medidor
+    LEFT JOIN consumo ON asignacion_medidor.id_asignacion = consumo.id_asignacion
+";
+$result_contadores = $conexion->query($sql_contadores);
+if ($result_contadores) {
+    $data_contadores = $result_contadores->fetch_assoc();
+    $lecturados = $data_contadores['lecturados'] ?? 0;
+    $sin_lectura = $data_contadores['sin_lectura'] ?? 0;
+}
+
 // Obtener el término de búsqueda si existe
 $busqueda = isset($_GET['buscar']) ? $_GET['buscar'] : '';
 
 // Consulta para obtener los medidores y su estado de lectura
 $sql = "
     SELECT 
-        asignacion_medidor.id_asignacion, -- Aseguramos que id_asignacion esté disponible
+        asignacion_medidor.id_asignacion, 
         CONCAT(socio.nombre, ' ', socio.apellido) AS socio,
         CONCAT('MED', LPAD(medidor.id_medidor, 4, '0')) AS medidor,
         zona.nombre AS zona,
@@ -17,6 +36,7 @@ $sql = "
     INNER JOIN medidor ON asignacion_medidor.id_medidor = medidor.id_medidor
     INNER JOIN zona ON asignacion_medidor.id_zona = zona.id_zona
 ";
+
 if (!empty($busqueda)) {
     $sql .= " WHERE CONCAT('MED', LPAD(medidor.id_medidor, 4, '0')) LIKE ? OR socio.nombre LIKE ? OR socio.apellido LIKE ?";
     $stmt = $conexion->prepare($sql);
@@ -31,29 +51,20 @@ $resultado = $stmt->get_result();
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lecturador</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        .medidor-card {
-            border: 1px solid #000;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        .medidor-card:hover {
-            background-color: #f1f1f1;
-        }
-        .medidor-card a {
-            text-decoration: none;
-            color: inherit;
-        }
-    </style>
+    <link rel="stylesheet" href="css/styles_lecturado.css">
 </head>
+
 <body>
+    <!-- Botón para mostrar el sidebar en móviles -->
+    <button class="toggle-sidebar-btn d-md-none">☰ Menú</button>
+
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar bg-primary text-white p-3">
@@ -77,6 +88,21 @@ $resultado = $stmt->get_result();
         <!-- Contenido Principal -->
         <div class="content flex-grow-1 p-4">
             <h1 class="mb-4">Lecturación</h1>
+
+
+            <!-- Contadores -->
+            <div class="d-flex flex-column flex-md-row justify-content-around mb-4">
+                <div class="contador">
+                    <h2><?= htmlspecialchars($lecturados) ?></h2>
+                    <p>Lecturados</p>
+                </div>
+                <div class="contador">
+                    <h2><?= htmlspecialchars($sin_lectura) ?></h2>
+                    <p>Sin Lectura</p>
+                </div>
+            </div>
+
+            <!-- Formulario de búsqueda -->
             <form method="GET" action="lecturador.php" class="mb-4">
                 <div class="input-group">
                     <input type="text" class="form-control" name="buscar" placeholder="Buscar por medidor o socio" value="<?= htmlspecialchars($busqueda) ?>">
@@ -85,6 +111,8 @@ $resultado = $stmt->get_result();
                     </button>
                 </div>
             </form>
+
+            <!-- Listado de medidores -->
             <?php if ($resultado->num_rows > 0): ?>
                 <?php while ($fila = $resultado->fetch_assoc()): ?>
                     <div class="medidor-card">
@@ -100,5 +128,15 @@ $resultado = $stmt->get_result();
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        const toggleSidebarBtn = document.querySelector('.toggle-sidebar-btn');
+        const sidebar = document.querySelector('.sidebar');
+
+        toggleSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    </script>
 </body>
+
 </html>
