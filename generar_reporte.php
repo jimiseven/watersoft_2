@@ -17,8 +17,8 @@ if (empty($fecha_inicio) || empty($fecha_fin)) {
 // Consultar el consumo y los montos en el rango de fechas
 $sql_reporte = "
     SELECT 
-        SUM(consumo.consumo) AS consumo_total,
-        SUM(deudas.monto) AS monto_total
+        COALESCE(SUM(consumo.consumo), 0) AS consumo_total,
+        COALESCE(SUM(deudas.monto), 0) AS monto_total
     FROM consumo
     INNER JOIN deudas ON consumo.id_consumo = deudas.id_consumo
     WHERE deudas.fecha_pago BETWEEN ? AND ?
@@ -29,8 +29,8 @@ $stmt_reporte->execute();
 $resultado_reporte = $stmt_reporte->get_result();
 $data_reporte = $resultado_reporte->fetch_assoc();
 
-$consumo_total = $data_reporte['consumo_total'] ?? 0;
-$monto_total = $data_reporte['monto_total'] ?? 0;
+$consumo_total = $data_reporte['consumo_total'];
+$monto_total = $data_reporte['monto_total'];
 
 // Preparar el contenido del PDF
 $html = "

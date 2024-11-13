@@ -11,8 +11,8 @@ $anio_actual = date('Y');
 // Consultar el consumo total anual y el monto recaudado
 $sql = "
     SELECT 
-        SUM(consumo.consumo) AS consumo_total_anual,
-        SUM(deudas.monto) AS monto_recaudado
+        COALESCE(SUM(consumo.consumo), 0) AS consumo_total_anual,
+        COALESCE(SUM(deudas.monto), 0) AS monto_recaudado
     FROM consumo
     INNER JOIN deudas ON consumo.id_consumo = deudas.id_consumo
     WHERE YEAR(deudas.fecha_pago) = ?
@@ -24,15 +24,15 @@ $resultado = $stmt->get_result();
 $data = $resultado->fetch_assoc();
 
 if ($data) {
-    $consumo_total_anual = $data['consumo_total_anual'] ?? 0;
-    $monto_recaudado = $data['monto_recaudado'] ?? 0;
+    $consumo_total_anual = $data['consumo_total_anual'];
+    $monto_recaudado = $data['monto_recaudado'];
 }
 
 // Consultar el consumo de los últimos 3 meses
 $sql_meses = "
     SELECT 
         DATE_FORMAT(deudas.fecha_pago, '%M') AS mes,
-        SUM(consumo.consumo) AS consumo_mes
+        COALESCE(SUM(consumo.consumo), 0) AS consumo_mes
     FROM consumo
     INNER JOIN deudas ON consumo.id_consumo = deudas.id_consumo
     WHERE YEAR(deudas.fecha_pago) = ?
@@ -62,18 +62,10 @@ $meses = $resultado_meses->fetch_all(MYSQLI_ASSOC);
         <div class="sidebar bg-primary text-white p-3">
             <h2 class="sidebar-title">WATEREG</h2>
             <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="index.php">Medidores</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="socios.php">Socios</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="lecturador.php">Lecturador</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white active" href="pagos.php">Pagos</a>
-                </li>
+                <li class="nav-item"><a class="nav-link text-white" href="index.php">Medidores</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="socios.php">Socios</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="lecturador.php">Lecturador</a></li>
+                <li class="nav-item"><a class="nav-link text-white active" href="pagos.php">Pagos</a></li>
             </ul>
         </div>
 
