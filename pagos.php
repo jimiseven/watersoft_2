@@ -92,7 +92,7 @@ for ($i = 2; $i >= 0; $i--) {
                     <a class="nav-link text-white" href="lecturador.php">Lecturador</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white active" href="pagos.php">Pagos</a>
+                    <a class="nav-link text-white active" href="pagos.php">Reportes</a>
                 </li>
             </ul>
         </div>

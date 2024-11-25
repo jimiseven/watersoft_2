@@ -1,4 +1,13 @@
 <?php
+require 'vendor/autoload.php'; // Cargar Dompdf
+use Dompdf\Dompdf;
+
+// Habilitar mensajes de error para depuración
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Incluir la conexión a la base de datos
 include 'conexion.php';
 
 // Obtener el ID de asignación desde la URL
@@ -25,19 +34,19 @@ $sql_medidor = "
     WHERE asignacion_medidor.id_asignacion = ?
 ";
 $stmt_medidor = $conexion->prepare($sql_medidor);
+if (!$stmt_medidor) {
+    die("Error en la consulta de medidor: " . $conexion->error);
+}
 $stmt_medidor->bind_param('i', $id_asignacion);
 $stmt_medidor->execute();
 $resultado_medidor = $stmt_medidor->get_result();
 $medidor = $resultado_medidor->fetch_assoc();
 
 if (!$medidor) {
-    echo '<div class="alert alert-danger">Información del medidor no encontrada.</div>';
-    echo '<a href="lecturador.php" class="btn btn-primary">Volver</a>';
-    exit;
+    die("Información del medidor no encontrada.");
 }
 
 // Procesar el formulario si se envió
-$mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lectura_actual = isset($_POST['lectura_actual']) ? (float)$_POST['lectura_actual'] : null;
     $lectura_anterior = isset($_POST['lectura_anterior']) ? (float)$_POST['lectura_anterior'] : null;
@@ -53,12 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             VALUES (?, ?, ?, ?, ?, ?)
         ";
         $stmt_insert = $conexion->prepare($sql_insert);
+        if (!$stmt_insert) {
+            die("Error al preparar la consulta de inserción: " . $conexion->error);
+        }
         $stmt_insert->bind_param('iddsds', $id_asignacion, $lectura_anterior, $lectura_actual, $periodo, $consumo, $observaciones);
 
         if ($stmt_insert->execute()) {
-            // Obtener el ID del consumo recién insertado
-            $id_consumo = $stmt_insert->insert_id;
-
             // Calcular el monto a pagar según la tabla de tarifas
             $sql_tarifa = "
                 SELECT costo_unitario
@@ -74,32 +83,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($tarifa) {
                 $monto = $consumo * $tarifa['costo_unitario'];
 
-                // Insertar la deuda correspondiente al consumo
-                $sql_deuda = "
-                    INSERT INTO deudas (id_consumo, monto)
-                    VALUES (?, ?)
-                ";
-                $stmt_deuda = $conexion->prepare($sql_deuda);
-                $stmt_deuda->bind_param('id', $id_consumo, $monto);
+                // Generar el PDF
+                $html = "
+                <!DOCTYPE html>
+                <html lang='es'>
+                <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>Boleta de Consumo</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Boleta de Consumo de Agua</h1>
+                    <p><strong>Fecha:</strong> " . date('Y-m-d') . "</p>
+                    <p><strong>Socio:</strong> {$medidor['nombre_socio']} {$medidor['apellido_socio']}</p>
+                    <p><strong>Zona:</strong> {$medidor['zona']}</p>
+                    <p><strong>Medidor:</strong> {$medidor['medidor']}</p>
+                    <table>
+                        <tr>
+                            <th>Lectura Anterior (m³)</th>
+                            <td>$lectura_anterior</td>
+                        </tr>
+                        <tr>
+                            <th>Lectura Actual (m³)</th>
+                            <td>$lectura_actual</td>
+                        </tr>
+                        <tr>
+                            <th>Consumo Total (m³)</th>
+                            <td>$consumo</td>
+                        </tr>
+                        <tr>
+                            <th>Monto a Pagar (Bs.)</th>
+                            <td>" . number_format($monto, 2) . "</td>
+                        </tr>
+                        <tr>
+                            <th>Observaciones</th>
+                            <td>$observaciones</td>
+                        </tr>
+                    </table>
+                </body>
+                </html>";
 
-                if ($stmt_deuda->execute()) {
-                    header("Location: lecturador.php?success=1");
-                    exit;
-                } else {
-                    $mensaje = 'Error al registrar la deuda: ' . $stmt_deuda->error;
-                }
+                $dompdf = new Dompdf();
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'portrait');
+                $dompdf->render();
+                $dompdf->stream("Boleta_Consumo.pdf", ["Attachment" => false]);
+                exit;
             } else {
-                $mensaje = 'No se encontró una tarifa para el consumo registrado.';
+                die("No se encontró una tarifa para el consumo registrado.");
             }
         } else {
-            $mensaje = 'Error al registrar el consumo: ' . $stmt_insert->error;
+            die("Error al registrar el consumo: " . $stmt_insert->error);
         }
     } else {
-        $mensaje = 'La lectura actual no puede ser menor a la lectura anterior.';
+        die("La lectura actual no puede ser menor a la lectura anterior.");
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="es">
@@ -108,16 +155,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Consumo</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container mt-4">
         <h1 class="mb-4">Registro de Consumo</h1>
-
-        <?php if (!empty($mensaje)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($mensaje) ?></div>
-        <?php endif; ?>
-
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title"><?= htmlspecialchars($medidor['nombre_socio'] . ' ' . $medidor['apellido_socio']) ?></h5>
@@ -129,12 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <form method="POST" action="">
-            <div class="mb-3">
-                <label for="fecha_actual" class="form-label">Fecha Actual:</label>
-                <input type="text" id="fecha_actual" class="form-control" value="<?= date('Y-m-d') ?>" disabled>
-            </div>
-
+        <form method="POST">
             <div class="mb-3">
                 <label for="periodo" class="form-label">Mes:</label>
                 <input type="text" id="periodo" name="periodo" class="form-control" value="<?= date('F') ?>" readonly>

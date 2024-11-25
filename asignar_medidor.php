@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <a class="nav-link text-white" href="lecturador.php">Lecturador</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="pagos.php">Pagos</a>
+                    <a class="nav-link text-white" href="pagos.php">Reportes</a>
                 </li>
             </ul>
         </div>
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="precio" class="form-label">Precio:</label>
+                    <label for="precio" class="form-label">Precio de Accion $ :</label>
                     <input type="number" step="0.01" class="form-control" id="precio" name="precio" placeholder="Ingrese el precio" required>
                 </div>
                 <button type="submit" class="btn btn-success">Asignar Medidor</button>

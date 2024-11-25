@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 13-11-2024 a las 17:38:42
+-- Tiempo de generación: 26-11-2024 a las 00:32:22
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.1.25
 
@@ -54,7 +54,11 @@ INSERT INTO `asignacion_medidor` (`id_asignacion`, `id_medidor`, `id_socio`, `id
 (11, 11, 6, 1, '2024-11-12', 1200.00),
 (12, 12, 7, 1, '2024-11-12', 500.00),
 (13, 13, 7, 1, '2024-11-13', 600.00),
-(14, 14, 7, 1, '2024-11-13', 700.00);
+(14, 14, 7, 1, '2024-11-13', 700.00),
+(15, 15, 2, 1, '2024-11-19', 100.00),
+(16, 16, 6, 1, '2024-11-25', 100.00),
+(17, 17, 7, 1, '2024-11-25', 150.00),
+(18, 18, 7, 1, '2024-11-25', 111.00);
 
 -- --------------------------------------------------------
 
@@ -91,7 +95,11 @@ INSERT INTO `consumo` (`id_consumo`, `id_asignacion`, `lectura_anterior`, `lectu
 (19, 11, 25.00, 30.00, 'November', 5.00, ''),
 (20, 12, 0.00, 5.00, 'November', 5.00, 'nuevo socio'),
 (21, 13, 0.00, 110.00, 'November', 110.00, ''),
-(22, 14, 0.00, 300.00, 'November', 300.00, '');
+(22, 14, 0.00, 300.00, 'November', 300.00, ''),
+(23, 15, 0.00, 100.00, 'November', 100.00, 'sin obs'),
+(24, 16, 0.00, 120.00, 'November', 120.00, ''),
+(25, 17, 0.00, 50.00, 'November', 50.00, ''),
+(26, 18, 0.00, 120.00, 'November', 120.00, '');
 
 -- --------------------------------------------------------
 
@@ -156,7 +164,12 @@ INSERT INTO `medidor` (`id_medidor`, `marca`, `modelo`, `fecha`) VALUES
 (11, 'perini', 'perini1', '2024-11-06'),
 (12, 'samsum', '2022', '2024-02-02'),
 (13, 'lg', 'mars', '2024-11-07'),
-(14, 'Restman', 'asf3', '2024-11-14');
+(14, 'Restman', 'asf3', '2024-11-14'),
+(15, 'LG', 'oo1', '2024-11-07'),
+(16, 'lg', 'mars222', '2024-11-13'),
+(17, 'men', 'mon2', '2024-11-15'),
+(18, 'mars', 'masr2', '2024-11-06'),
+(19, 'mase', 'sazdf23', '2024-11-14');
 
 -- --------------------------------------------------------
 
@@ -314,13 +327,13 @@ ALTER TABLE `zona`
 -- AUTO_INCREMENT de la tabla `asignacion_medidor`
 --
 ALTER TABLE `asignacion_medidor`
-  MODIFY `id_asignacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_asignacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `consumo`
 --
 ALTER TABLE `consumo`
-  MODIFY `id_consumo` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id_consumo` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `deudas`
@@ -332,7 +345,7 @@ ALTER TABLE `deudas`
 -- AUTO_INCREMENT de la tabla `medidor`
 --
 ALTER TABLE `medidor`
-  MODIFY `id_medidor` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_medidor` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de la tabla `socio`

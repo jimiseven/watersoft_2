@@ -5,12 +5,26 @@ include 'conexion.php';
 $busqueda = isset($_GET['buscar']) ? $_GET['buscar'] : '';
 
 // Consulta para obtener los medidores con filtro de búsqueda
-$sql = "SELECT id_medidor, marca, modelo, fecha FROM medidor";
+$sql = "
+    SELECT 
+        medidor.id_medidor,
+        medidor.marca,
+        medidor.modelo,
+        medidor.fecha,
+        CASE 
+            WHEN asignacion_medidor.id_medidor IS NOT NULL THEN 'Asignado'
+            ELSE 'Libre'
+        END AS estado
+    FROM medidor
+    LEFT JOIN asignacion_medidor ON medidor.id_medidor = asignacion_medidor.id_medidor
+";
+
 if (!empty($busqueda)) {
-    $sql .= " WHERE CONCAT('MED', LPAD(id_medidor, 4, '0')) LIKE '%$busqueda%' 
-              OR marca LIKE '%$busqueda%' 
-              OR modelo LIKE '%$busqueda%'";
+    $sql .= " WHERE (CONCAT('MED', LPAD(medidor.id_medidor, 4, '0')) LIKE '%$busqueda%' 
+              OR medidor.marca LIKE '%$busqueda%' 
+              OR medidor.modelo LIKE '%$busqueda%')";
 }
+
 $resultado = $conexion->query($sql);
 ?>
 
@@ -41,7 +55,7 @@ $resultado = $conexion->query($sql);
                     <a class="nav-link text-white" href="lecturador.php">Lecturador</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="pagos.php">Pagos</a>
+                    <a class="nav-link text-white" href="pagos.php">Reportes</a>
                 </li>
             </ul>
         </div>
@@ -70,7 +84,7 @@ $resultado = $conexion->query($sql);
                             <tr>
                                 <td>MED<?= str_pad($fila['id_medidor'], 4, '0', STR_PAD_LEFT) ?></td>
                                 <td><?= date("d F Y", strtotime($fila['fecha'])) ?></td>
-                                <td><?= rand(0, 1) ? 'Asignado' : 'Libre' ?></td>
+                                <td><?= htmlspecialchars($fila['estado']) ?></td>
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
